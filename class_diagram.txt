@@ -3,280 +3,273 @@ config:
   layout: elk
 ---
 classDiagram
-    direction TB
+direction TB
 
-        class PaymentStatus {
-            UNPAID
-            PAID
-        }
-        <<Enumeration>> PaymentStatus
+    class PaymentStatus {
+        UNPAID
+        PAID
+    }
+    <<Enumeration>> PaymentStatus
 
-        class Species {
-            CAT
-            DOG
-            EXOTIC
-        }
-        <<Enumeration>> Species
+    class Species {
+	    CAT
+	    DOG
+	    EXOTIC
+    }
+    <<Enumeration>> Species
 
-        class Sex {
-            MALE
-            FEMALE
-        }
-        <<Enumeration>> Sex
+    class Sex {
+        MALE
+        FEMALE
+    }
+    <<Enumeration>> Sex
 
-        class WardType {
-            STANDARD
-            ICU
-            ISOLATION
-        }
-        <<Enumeration>> WardType
+    class WardType {
+        STANDARD
+        ICU
+        ISOLATION
+    }
+    <<Enumeration>> WardType
 
-        class CageStatus {
-            AVAILABLE
-            OCCUPIED
-            RESERVED
-        }
-        <<Enumeration>> CageStatus
+    class CageStatus {
+        AVAILABLE
+        OCCUPIED
+        RESERVED
+    }
+    <<Enumeration>> CageStatus
 
-        class BookingStatus {
-            SCHEDULED
-            CHECKED_IN
-            COMPLETED
-            CANCELLED
-            NO_SHOW
-        }
-        <<Enumeration>> BookingStatus
+    class BookingStatus {
+        SCHEDULED
+        CHECKED_IN
+        COMPLETED
+        CANCELLED
+        NO_SHOW
+    }
+    <<Enumeration>> BookingStatus
 
-        class RoomStatus {
-            AVAILABLE
-            IN_PROGRESS
-        }
-        <<Enumeration>> RoomStatus
+    class RoomStatus {
+        AVAILABLE
+        IN_PROGRESS
+    }
+    <<Enumeration>> RoomStatus
 
-        class CageSize {
-            S
-            M
-            L
-        }
-        <<Enumeration>> CageSize
+    class CageSize {
+        S
+        M
+        L
+    }
+    <<Enumeration>> CageSize
 
-        class User {
-            -name : str
-            -user_id : str
-            -phone_no : str
-            -no_show_left : int
-            -pet_list : List[PetProfile]
-            -booking_list: List[BookingItem]
-            +add_pet(PetProfile)
-        }
-        User --> BookingItem : makes
-        User <|-- Employee
-        User "1" o-- "1..*" PetProfile
+    class User {
+        -name : str
+        -user_id : str
+        -phone_no : str
+        -no_show_left : int
+        -pet_list : List
+        -booking_list: List
+	    +add_pet(PetProfile)
+    }
+    User --> Appointment : makes
+    User <|-- Employee
+    User "1" o-- "1..*" PetProfile
 
-        class Employee {
-            -employee_id : str
-            -hospital : str
-            -salary : float
-        }
-        Employee <|-- Vet
-        Employee <|-- HospitalStaff
-        Employee <|-- HospitalManager
+    class Employee {
+        -employee_id : str
+	    -hospital : str
+	    -salary : float
+    }
+    Employee <|-- Vet
+    Employee <|-- HospitalStaff
+    Employee <|-- HospitalManager
 
-        class Vet {
-            -expertise: Species
-            -timeslot_list : List[TimeSlot]
-            -current_appointment : Appointment
-            +is_available_at(desired_time)
-        }
-        Vet o-- TimeSlot
-        Vet --> MedicalRecord : makes
-        Vet <--> Appointment
+    class Vet {
+	    -expertise: Species
+        -timeslot_list : List[TimeSlot]
+        -current_appointment : Appointment
+        +is_available_at(desired_time)
+    }
+    Vet o-- TimeSlot
+    Vet --> MedicalRecord : makes
+    Vet <-- Appointment
 
-        class TimeSlot {
-            -timeslot : datetime
-            -available : bool
-        }
+    class TimeSlot {
+        timeslot : datetime
+        available : bool
+    }
 
-        class HospitalStaff {
-            +assign_pet(pet_id, ward_no, cage_no)
-            +clean_cage(ward_no, cage_no)
-            +assign_vet(room_no)
-            +clean_room(room_no)
-        }
+    class HospitalStaff {
+        +assign_pet(pet_id, ward_no, cage_no)
+        +clean_cage(ward_no, cage_no)
+        +assign_vet(room_no)
+        +clean_room(room_no)
+    }
 
-        class HospitalManager {
-            +change_price_rates(..)
-            +add_cage(ward_no)
-            +remove_cage(ward_no)
-            +change_salary(employee_id, amount)
-        }
+    class HospitalManager {
+        +change_price_rates(..)
+        +add_cage(ward_no)
+        +remove_cage(ward_no)
+        +change_salary(employee_id, amount)
+    }
 
-        class PetProfile {
-            -name : str
-            -id : str
-            -species : Species
-            -weight : float
-            -sex : Sex
-            -bithdate : str
-            -medical_records : List
-        }
-        PetProfile "1" o-- "0..*" MedicalRecord
+    class PetProfile {
+	    -name : str
+	    -id : str
+	    -species : Species
+        -weight : float
+        -sex : Sex
+        -bithdate : str
+        -medical_records : List
+    }
+    PetProfile "1" o-- "0..*" MedicalRecord
 
-        class Cage {
-            -cage_no : str
-            -cage_size : CageSize
-            -cage_status : CageStatus
-            -pet_profile : PetProfile
-        }
-        Cage<--PetProfile
+    class Cage {
+        -cage_no : str
+        -cage_size : CageSize
+        -cage_status : CageStatus
+        -pet_profile : PetProfile
+    }
+    Cage<--PetProfile
 
-        class MedicalRecord {
-            -date : datetime
-            -petprofile : PetProfile
-            -client_user : User
-            -vet : Vet
-            -symptoms : str
-            -diagnosis : str
-            -prescription : Prescription
-            -admitted_record : AdmitRecord
-        }
-        MedicalRecord <-- Prescription
-        MedicalRecord <-- AdmitRecord
-        MedicalRecord <-- PetProfile
+    class MedicalRecord {
+        -date : datetime
+	    -petprofile : PetProfile
+        -vet : vet
+	    -symptoms : str
+        -diagnosis : str
+        -prescription : Prescription
+        -admitted_record : AdmitRecord
+    }
+    MedicalRecord <-- Prescription
+    MedicalRecord <-- AdmitRecord
+    MedicalRecord <-- PetProfile
 
-        class Prescription {
-            -medicine : Medicine
-            -instructions : str
-        }
-        Prescription <-- Medicine
+    class Prescription {
+        -medicine : Medicine
+        -instructions : str
+    }
+    Prescription <-- Medicine
 
-        class BookingItem {
-            -booking_id : str
-            -booking_status : BookingStatus
-            -booking_date : datetime
-            -user : User
-            -pet_profile : PetProfile
-            -invoice : Invoice
-            -Payment : Payment
-        }
-        <<Abstract>> BookingItem
-        BookingItem --> Invoice : generates
-        BookingItem --> Payment : settles
-        BookingItem <|-- Appointment
-        BookingItem <|-- CageBooking
-        BookingItem "0..*" --o "1" PetHospital
+    class BookingItem {
+        -booking_id : str
+        -booking_status : BookingStatus
+        -booking_date : datetime
+        -user : User
+        -pet_profile : PetProfile
+        -invoice : Invoice
+        -payment : Payment
+    }
+    <<Abstract>> BookingItem
+    BookingItem --> Invoice : generates
+    BookingItem <-- Payment
+    BookingItem <|-- Appointment
+    BookingItem <|-- CageBooking
+    BookingItem "0..*" --o "1" PetHospital
 
-        class Appointment {
-            -vet: Vet
-            -appointment_date: datetime
-        }
+    class Appointment {
+        -vet: Vet
+        -appointment_date: datetime
+    }
 
-        class CageBooking {
-            -stay_date : datetime
-            -leave_date : datetime
-            -ward: Ward
-            -cage: Cage
-        }
-        CageBooking <-- Cage
-        CageBooking <-- Ward
+    class CageBooking {
+        -stay_date : datetime
+        -leave_date : datetime
+        -ward: Ward
+        -cage: Cage
+    }
+    CageBooking <-- Cage
+    CageBooking <-- Ward
 
-        class Invoice {
-            -invoice_no : str
-            -issued_date : datetime
-            -total : float
-            -payment_status : PaymentStatus
-        }
+    class Payment {
+        -payment_id : str
+        -amount : float
+        -paid_date : datetime
+        -method : PaymentMethod
+        -receipt_list : List[ServiceItem]
+    }
+    Payment <-- Appointment : settles
 
-        class PaymentMethod {
-            -method : str
-        }
-        PaymentMethod --> Payment
+    class ServiceItem {
+        +calculate_cost()
+    }
+    <<Abstract>> ServiceItem
+    ServiceItem --o Payment
+    ServiceItem <|-- CageService
+    ServiceItem <|-- MedicalService
 
-        class Payment {
-            -payment_id : str
-            -amount : float
-            -paid_date : datetime
-            -method : PaymentMethod
-            -receipt_list : List[ServiceItem]
-        }
+    class CageService {
+        -ward: Ward
+        -cage: Cage
+        -stay_duration_in_days: int
+    }
+    CageService <-- Cage
+    CageService <-- Ward
 
-        class ServiceItem {
-            +calculate_cost()
-        }
-        <<Abstract>> ServiceItem
-        ServiceItem --o Payment
-        ServiceItem <|-- CageService
-        ServiceItem <|-- MedicalService
+    class MedicalService {
+        -examination_fee: int
+        -prescription: Prescription
+        -quantity: int
+    }
+    MedicalService <-- Prescription
 
-        class CageService {
-            -ward: Ward
-            -cage: Cage
-            -stay_duration_in_days: int
-        }
-        CageService <-- Cage
-        CageService <-- Ward
+    class PetHospital {
+	    -name : str
+        -user_list : List
+	    -employee_list : List
+	    -admitted_list : List
+        -medical_records_list : List
+	    -ward_list : List
+        -booking_list : List
+        +add_user()
+        +add_employee()
+        +search_pet_by_id(pet_id)
+        +search_employee_by_id(employee_id)
+        +search_user_by_id(user_id)
+        +look_up_appointments(user_id)
+        +look_up_cage_booking(user_id)
+        +request_appointment(user_id, vet_id, pet_id, chosen_date)
+        +create_new_appointment()
+        +book_cage(user_id, pet_id, CageSize, stay_date, duration)
+        +check_in(user_id)
+        +admit_pet(pet_id, ward_no, cage_no)
+    }
+    PetHospital "1" o-- "0..*" MedicalRecord
+    PetHospital "1" o-- "1..*" Employee
+    PetHospital "1" o-- "1..*" Ward
+    PetHospital "1" o-- "0..*" AdmitRecord
 
-        class MedicalService {
-            -examination_fee: int
-            -medicine: Medicine
-            -quantity: int
-        }
-        MedicalService <-- Medicine
+    class Medicine {
+        -medicine_id : string
+        -name : str
+        -unit_price: float
+    }
 
-        class PetHospital {
-            -name : str
-            -user_list : List[User]
-            -employee_list : List[Employee]
-            -admitted_list : List[AdmitRecord]
-            -medical_records_list : List[MedicalRecord]
-            -ward_list : List[Ward]
-            -examination_room_list : List[ExaminationRoom]
-            -booking_list : List[BookingItem]
-            +add_user()
-            +add_employee()
-            +search_pet_by_id(pet_id)
-            +search_employee_by_id(employee_id)
-            +search_user_by_id(user_id)
-            +look_up_appointments(user_id)
-            +look_up_cage_booking(user_id)
-            +request_appointment(user_id, vet_id, pet_id, chosen_date)
-            +create_new_appointment()
-            +book_cage(user_id, pet_id, CageSize, stay_date, duration)
-            +check_in(user_id)
-            +admit_pet(pet_id, ward_no, cage_no)
-        }
-        PetHospital "1" o-- "0..*" MedicalRecord
-        PetHospital "1" o-- "1..*" Employee
-        PetHospital "1" o-- "1..*" Ward
-        PetHospital "1" o-- "0..*" AdmitRecord
-        PetHospital "1" o-- "1..*" ExaminationRoom
+    class Ward {
+        -ward_no : str
+        -type : WardType
+        -cage_list : List
+        -max_number_of_cage : 10
+    }
+    Ward "1" o-- "1..10" Cage
 
-        class Medicine {
-            -medicine_id : string
-            -name : str
-            -unit_price: float
-        }
+    class AdmitRecord {
+        -pet : PetProfile
+        -ward : Ward
+        -cage : Cage
+        -date_of_admit : datetime
+        -date_of_leave : datetime
+        -total_admitted_time_in_days : int
+    }
+    AdmitRecord --> PetProfile
+    Vet --> MedicalRecord : makes
+    Vet <--> Appointment
 
-        class ExaminationRoom {
-            -room_no : str
-            -room_status : RoomStatus
-        }
+    class Invoice {
+        -invoice_no : str
+        -issued_date : datetime
+        -total : float
+        -payment_status : PaymentStatus
+    }
 
-        class Ward {
-            -ward_no : str
-            -type : WardType
-            -cage_list : List
-        }
-        Ward "1" o-- "1..10" Cage
-
-        class AdmitRecord {
-            -pet : PetProfile
-            -ward : Ward
-            -cage : Cage
-            -date_of_admit : datetime
-            -date_of_leave : datetime
-            -total_admitted_time_in_days : int
-        }
-        AdmitRecord <-- PetProfile
-        AdmitRecord <-- Ward
-        AdmitRecord <-- Cage
+    class PaymentMethod {
+        -method : str
+    }
