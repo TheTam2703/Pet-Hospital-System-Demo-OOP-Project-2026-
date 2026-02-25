@@ -34,6 +34,7 @@ class CageStatus(Enum):
 
 class WardType(Enum):
     Standard = "Standard"
+    ICU = "ICU"
     Isotaion = "Isotation"
 
 "////////////////////////////////////////////////"
@@ -65,8 +66,7 @@ class PetHospital :
                 if(cage_no != None and ward_no != None):
                     
                     admit_record = AdmitRecord(Pet.get_id(), ward, cage_no, date_admit)
-                    print(f"{type(cage_no)}")
-                    medical_record.write_admit_record(admit_record)
+                    medical.write_admit_record(admit_record)
                     return f"admit success at cage {cage_no} ward {ward_no}"
     
             else:
@@ -330,7 +330,7 @@ def read_root():
 
 @app.post("/admit", tags=["admit"])
 def admit(MedID: str, date_in: str)-> dict:
-    
+
     status = hospital.admit(MedID, date_in)
     return {"status" : status}
 

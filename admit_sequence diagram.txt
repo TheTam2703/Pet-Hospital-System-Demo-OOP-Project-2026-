@@ -194,7 +194,7 @@ ver 05
 ---------------------------------------------------------------------------------------------------------------------------------
 sequenceDiagram
     actor HospitalStaff
-    HospitalStaff ->> PetHospital : admit(medical_recordID)
+    HospitalStaff ->> PetHospital : admit(medical_recordID, date_in)
     activate PetHospital
     loop for medical in medical record_list
     PetHospital ->> medical_record : get_medical_id()
