@@ -64,7 +64,8 @@ class PetHospital :
                 cage_no, ward_no =  ward.try_admit(Pet, weight)
                 if(cage_no != None and ward_no != None):
                     
-                    admit_record = AdmitRecord(Pet.get_id(), ward_no, cage_no, date_admit)
+                    admit_record = AdmitRecord(Pet.get_id(), ward, cage_no, date_admit)
+                    print(f"{type(cage_no)}")
                     medical_record.write_admit_record(admit_record)
                     return f"admit success at cage {cage_no} ward {ward_no}"
     
@@ -73,6 +74,9 @@ class PetHospital :
             
         elif(Pet == None): ## ไม่ได้มีการรีเทิร์น PetProfile = ไม่อนุมัติ 
             return "Not approved"
+        
+        elif(isinstance(Pet,AdmitRecord)):
+            return "already admited"
 
     def valid_date(self, date_time):
         try:
@@ -147,9 +151,10 @@ class medical_record :
 
     def get_approval(self) -> Union[None,object]:
         "return Pet and weight if approved return None if not aprroved"
-        if(self.__admited_record): 
+        if(self.__admited_record == True): 
             return self.__pet, self.__pet.get_information()
-        
+        elif(isinstance(self.__admited_record, AdmitRecord)):
+            return self.__admited_record, None
         return None, None
 
     def write_admit_record(self,admit_record: object):
@@ -220,7 +225,7 @@ class Cage :
         "ถ้ากรงว่างและน้ำหนักสัตว์ไม่เกิน return True"
         if(self.__cage_status == CageStatus.AVAILABLE and weight < self.__cage_size.value):
             self.update_status(Pet)
-            return self.__cage_no 
+            return self
         
         return None
     
@@ -334,9 +339,11 @@ def get_admit_record(MedID):
     for med in hospital.get_med_list():
         if(med.get_medical_id() == MedID):
             if(isinstance(med.get_admit_record(),AdmitRecord)):
-                cage = med.get_admit_record().get_cage()
+                cage_id = med.get_admit_record().get_cage().no
                 pet_id = med.get_admit_record().get_pet()
-                return {med.get_admit_record().get_pet() : cage}
+                print(f"{type(cage_id)} : {type(pet_id)}")
+                print(f"{pet_id} : {cage_id}")
+                return {pet_id : cage_id}
             return {MedID : med.get_admit_record()}
     return {MedID : "can't find this ID"}
 
