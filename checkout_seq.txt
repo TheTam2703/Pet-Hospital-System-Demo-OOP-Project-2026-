@@ -1,0 +1,68 @@
+-----------------------------------------------------------------------------------------------------------------------------
+ver 00
+-----------------------------------------------------------------------------------------------------------------------------
+
+
+sequenceDiagram
+    actor HospitalStaff
+    HospitalStaff ->> PetHospital : check_out(medical_recordID, date_leave)
+activate PetHospital
+loop for medical in medical_list
+activate PetHospital
+alt if medical_id match
+    PetHospital ->> medical_record : get pet and medical_record object
+    medical_record -->> PetHospital : return Pet object and medical_record object
+end
+deactivate PetHospital
+end
+deactivate PetHospital
+loop for ward in ward_list
+activate PetHospital
+    PetHospital ->> Ward : check_out(Pet : object)
+    activate PetHospital
+    activate Ward
+    activate Ward
+    loop for cage in cage_list
+    Ward ->> cage : check_out(Pet : object)
+    activate cage
+    activate PetHospital
+    alt if Pet in cage match
+    cage ->> cage : check_out()
+    cage -->> Ward : return 1
+    deactivate cage
+    deactivate Ward
+    activate PetHospital
+    alt if cage return 1 = checkout success
+    Ward ->> PetHospital : return 1 เพื่อจบการทำงาน
+    deactivate Ward
+    end
+deactivate PetHospital
+    end
+deactivate PetHospital
+    end
+deactivate PetHospital
+end
+deactivate PetHospital
+alt if ward return 1 = check_out success
+activate PetHospital
+PetHospital ->> medical_record : check_out_at(date_leave)
+activate medical_record
+medical_record ->> admit_record : check_out_at(date_leave)
+activate admit_record
+admit_record -->> medical_record : return cage_id
+deactivate admit_record
+medical_record -->> PetHospital : return cage_id and medical_id
+deactivate medical_record
+PetHospital -->> HospitalStaff : return Pet_id checkout from cage_id at date_leave
+deactivate PetHospital
+else ward return not 1
+activate PetHospital
+PetHospital -->> HospitalStaff : return somethings went wrong 
+deactivate PetHospital
+end
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------------------------------------------------
