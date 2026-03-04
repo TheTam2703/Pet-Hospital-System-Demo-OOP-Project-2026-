@@ -146,7 +146,7 @@ class PetProfile:
     def is_admit(self):
         for medical_record in self.__medical_records:
             admit_record: AdmitRecord = medical_record.get_admit_record()
-            if(isinstance(admit_record,AdmitRecord) and isinstance(admit_record.get_checkout(),datetime)):
+            if(isinstance(admit_record,AdmitRecord) and admit_record.get_checkout() == None):
                 return admit_record.get_cage().no
         return None
 
@@ -656,7 +656,7 @@ class PetHospital :
             for pet in pet_list:
                 cage = pet.is_admit()
                 if(cage != None):
-                    pet_admit[pet] = cage
+                    pet_admit[pet.id] = cage
             return pet_admit
         else:
             return {f"status" : "user not found"}
