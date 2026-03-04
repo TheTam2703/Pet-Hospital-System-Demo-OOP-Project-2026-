@@ -27,15 +27,17 @@ class CageSize(Enum):
     S = 5.0
     M = 15.0
     L = 30.0
+    
     def get_price(self):
-        if(self == CageSize.S):
-            return 300
-        elif(self == CageSize.M):
-            return 450
-        elif(self == CageSize.L):
-            return 600
         
-
+        return price[self]
+        
+    def new_price(self,size, new_price):
+        for key in price:
+            if(key == size):
+                price[key] = new_price
+            
+price ={CageSize.S : 300, CageSize.M : 450, CageSize.L : 600}
 class Expertise(Enum):
     CAT = 0
     DOG = 1
@@ -74,7 +76,6 @@ class Payment:
         sum = 0
         for recep in self.__recept_list:
             sum += recep.calculate_total_price()
-            print(f"sum = {sum}")
         else:
             self.__total = sum
             return self.__total
@@ -96,7 +97,6 @@ class CageService(ServiceItem):
 
     def calculate_total_price(self):
         total = self.__cage.size.get_price() * self.__stay_duration
-
         return total
 
 class MedicalService(ServiceItem):
@@ -108,7 +108,6 @@ class MedicalService(ServiceItem):
         sum = self.__examination_fee
         for prescription in self.__prescription_list:
             sum += prescription.calculate_price()
-
         return sum
 
 
@@ -143,6 +142,13 @@ class PetProfile:
     @property
     def species(self):
         return self.__species
+
+    def is_admit(self):
+        for medical_record in self.__medical_records:
+            admit_record: AdmitRecord = medical_record.get_admit_record()
+            if(isinstance(admit_record,AdmitRecord) and isinstance(admit_record.get_checkout(),datetime)):
+                return admit_record.get_cage().no
+        return None
 
 class User:
     def __init__(self, user_id: str, name: str, phone_num: str):
@@ -281,6 +287,9 @@ class Medicine:
     @property
     def id(self):               return self.__id
 
+    @unit_price.setter
+    def unit_price(self, new_unitprice: float):       self.__unit_price = new_unitprice
+
 class MedicalRecord :
     def __init__(self,medical_id:str, date: str, pet: object, user :object, vet: object, symtomps: str, diagnosis: str, prescription: list[Prescription], admit: bool,
         appointment: object)  :
@@ -347,6 +356,9 @@ class Ward :
         "return cage_list in ward"
         return self.__cage_list
     
+    def cage_pop(self, position):
+        return self.__cage_list.pop(position)
+
     def __str__(self):
         return self.__ward_no
 
@@ -391,17 +403,18 @@ class Cage :
 
 class AdmitRecord():
     def __init__(self, pet_id: str, ward: object, cage: object, date_of_admit: datetime):
-        self.__pet = pet_id
-        self.__ward = ward
-        self.__cage = cage
-        self.__date_of_admit = date_of_admit
-        self.__date_of_leave = None
+        self.__pet: str = pet_id
+        self.__ward: Ward = ward
+        self.__cage: Cage = cage
+        self.__date_of_admit: datetime = date_of_admit
+        self.__date_of_leave: datetime = None
 
     def get_pet(self):
         return self.__pet
     def get_cage(self):
         return self.__cage
     def get_ward(self):return self.__ward
+    def get_checkout(self): return self.__date_of_leave
 
     def check_out_at(self, date_leave: datetime) -> int:
             format = "%d/%m/%Y %H:%M"
@@ -548,6 +561,11 @@ class PetHospital :
                 return employee
         return None
     
+    def search_medicine_by_id(self, medicine_id: str):
+        for medicine in self.__medicine_list:
+            if(medicine.id == medicine_id):
+                return medicine
+
     def calculate_payment(self, user_id):
         user = self.search_user_by_id(user_id)
         if(user == None):
@@ -557,7 +575,8 @@ class PetHospital :
             total = payment.calculate_total()
             return total
 
-        except Exception:
+        except Exception as e:
+            print(e)
             return 0        
 
     def check_user_eligibility(self, user: User):
@@ -601,4 +620,43 @@ class PetHospital :
         user.current_appointment = None
         return user
 
+    def reduce_cage(self,Cage_no) -> Union[Cage, None]:
+        for ward in self.__ward_list:
+            position = 0
+            for cage in ward.get_cage():
+                if(cage.no == Cage_no and cage.status == CageStatus.AVAILABLE):
+                    cage = ward.cage_pop(position)
 
+        return cage
+    
+    def new_medicine_price(self, medicine_id: str, new_price: float):
+        medicine = self.search_medicine_by_id(medicine_id)
+        if(isinstance(medicine, Medicine)):
+            old_price = medicine.unit_price
+            medicine.unit_price = new_price
+            return f"old price : {old_price} new price: {new_price}"
+        else: 
+            return f"something went wrong"
+
+    def new_cage_price(self, size: str, new_price):
+        CageSize_list = [CageSize.S, CageSize.M, CageSize.L]
+        for cagesize in CageSize_list:
+            if(cagesize.name == size):
+                old_price = cagesize.get_price()
+                cagesize.new_price(cagesize, new_price)
+                return f"old price : {old_price} new_price : {new_price}"
+        else:
+            return f"cage size {size} not found"
+    
+    def display_pet_admit(self, user_id) -> dict:
+        user: User = self.search_user_by_id(user_id)
+        if(isinstance(user,User)):
+            pet_admit = {}
+            pet_list = user.pet_list
+            for pet in pet_list:
+                cage = pet.is_admit()
+                if(cage != None):
+                    pet_admit[pet] = cage
+            return pet_admit
+        else:
+            return {f"status" : "user not found"}

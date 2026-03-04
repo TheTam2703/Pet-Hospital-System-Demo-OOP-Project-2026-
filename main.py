@@ -81,12 +81,17 @@ app = FastAPI()
 def read_root():
     return {"Hello": "Pet Hospital"}
 
-@app.get("/calculate total")
+@app.get("/calculate total",tags= ["Staff"])
 def calculate_total(user_id):
     total = system.calculate_payment(user_id)
     return {"total" : total}
 
-@app.post("/book_appointment")
+@app.get("/display pet admit",tags= ['Owner'])
+def display_pet(user_id: str):
+    get = system.display_pet_admit(user_id= user_id)
+    return get
+
+@app.post("/book_appointment",tags= ['Owner'])
 def book_appointment(user_id: str, vet_id: str, pet_id: str, chosen_date: str):
 
     fmt = "%d/%m/%Y %H:%M"
@@ -109,7 +114,7 @@ def book_appointment(user_id: str, vet_id: str, pet_id: str, chosen_date: str):
     except Exception as e:
         return {"success": False, "message": f"Sum thing wrong: {str(e)}"}
     
-@app.get("/admit",tags=["admit"])
+@app.get("/admit",tags=["Staff"])
 def get_admit_record(MedID):
     for med in system.get_med_list():
         if(med.get_medical_id() == MedID):
@@ -120,20 +125,28 @@ def get_admit_record(MedID):
             return {MedID : med.get_admit_record()}
     return {MedID : "can't find this ID"}
 
-@app.post("/admit", tags=["admit"])
+@app.post("/admit", tags=["Staff"])
 def admit(MedID: str, date_in: str)-> dict:
 
     status = system.admit(MedID, date_in)
     return {"status" : status}
 
-@app.post("/checkout", tags=['checkout'])
+@app.post("/checkout", tags=['Staff'])
 def check_out(Medical_recordID : str, date_leave: str):
     status = system.check_out(Medical_recordID, date_leave)
     return {"status" : status}
-@app.patch("/clear.current.appointment", tags= ['appointment'])
+@app.patch("/clear.current.appointment", tags= ['Staff'])
 def clear_appointment(user_id):
     user: User = system.clear_appointment(user_id)
     return {f"Current user:{user_id}" : user.current_appointment}
+@app.patch("/new_cage_price",tags= ['Manager'])
+def new_cage_price(cagesize: str, new_price):
+    get = system.new_cage_price(size=cagesize, new_price=new_price)
+    return {"status" : get}
+@app.patch("/new_medicine_price",tags=["Manager"])
+def new_medicine_price(med_id: str, new_price):
+    get = system.new_medicine_price(medicine_id= med_id, new_price= new_price)
+    return {"status" : get}
 
 if __name__ == "__main__":
     uvicorn.run("main:app",host="127.0.0.1",port=8000,reload=True)
