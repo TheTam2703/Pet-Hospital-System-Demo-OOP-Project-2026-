@@ -5,7 +5,12 @@ from fastapi import FastAPI
 def create_test():
     system = PetHospital("Test Pet Hospital")
 
-    # ====== USER + PET ======
+    # ====== 0. MEDICINE ======
+    # สร้างข้อมูลยาเข้าระบบ เพื่อใช้ตอนทำ Prescription และนำไปคำนวณค่าใช้จ่าย
+    med1 = Medicine("MED01", "Dog Paracetamol", 50.0)
+    system.add_medicine(med1)
+
+    # ====== 1. USER + PET ======
     user = User("U001", "Tam", "0999999999")
     user.add_petprofile(
         pet_id="P001",
@@ -13,12 +18,13 @@ def create_test():
         species=Species.DOG,
         weight=12.0,
         sex=Sex.MALE,
-        birthdate="13/04/2017"
+        birthdate="13/04/2017",
+        allergy= []
+         # เพิ่มพารามิเตอร์ allergy (ตามที่กำหนดไว้ใน __init__ ของ PetProfile)
     )
-
     system.add_user(user)
 
-    # ====== VET ======
+    # ====== 2. VET ======
     vet = Vet(
         employee_id="V001",
         user_id="EMP001",
@@ -27,35 +33,42 @@ def create_test():
         expertise=Species.DOG,
         phone_num= "1234"
     )
-
-    vet.add_timeslot(datetime(2026, 3, 10, 10, 0))
-    vet.add_timeslot(datetime(2026, 3, 10, 11, 0))
+    # เพิ่ม Timeslot ว่างให้หมอ เพื่อรองรับ Test Case: Booking
+    vet.add_timeslot(datetime(2026, 3, 10, 10, 0)) 
+    vet.add_timeslot(datetime(2026, 3, 15, 10, 0)) # Slot สำหรับทดสอบจองวันอื่น
     system.add_employee(vet)
 
-    # ====== WARD + CAGES ======
+    # ====== 3. WARD + CAGES ======
     ward = Ward("W01", WardType.Standard)
-
+    # กรง Size S รับน้ำหนักได้ไม่เกิน 5.0kg / Size M รับได้ไม่เกิน 15.0kg
     cage1 = Cage("C1", CageSize.S, None, CageStatus.AVAILABLE)
-    cage2 = Cage("C2", CageSize.M, None, CageStatus.AVAILABLE)
-
+    cage2 = Cage("C2", CageSize.M, None, CageStatus.AVAILABLE) # AIDUM หนัก 12kg จะถูกจัดเข้ากรงนี้
     ward.add_cage(cage1)
     ward.add_cage(cage2)
-
     system.add_ward(ward)
 
-    # ====== MEDICAL RECORD (approved for admit) ======
+    # ====== 4. APPOINTMENT & MEDICAL RECORD ======
+    # เพื่อรองรับ Test Case: Admit, Checkout และ Calculate Payment
     pet = user.get_pet_by_id("P001")
+    
+    # 4.1 จำลองว่ามี Appointment เกิดขึ้นแล้ว (สถานะ CHECKED_IN)
+    appt = Appointment("APP001", user.user_id, vet.employee_id, pet, datetime(2026, 3, 10, 9, 0), AppointmentStatus.CHECKED_IN)
+    user.current_appointment = appt
+    system.add_appointment(appt)
 
+    # 4.2 สร้างรายการยาที่สั่ง (จำนวน 2 หน่วย x 50 บาท = 100 บาท)
+    prescription = Prescription(med1, "Take 1 pill twice a day", 2)
+
+    # 4.3 สร้างประวัติการรักษา (สั่ง Admit = True, ค่าตรวจ = 500 บาท, ผูกกับ Appointment)
     system.make_medical_record(
         medical_id="M001",
         date="10/03/2026 10:00",
-        pet=pet,
-        user=user,
-        vet=vet,
-        symtomps="fever",
+        symtomps="fever", 
         diagnosis="infection",
-        prescription=Prescription(),
-        admit=True  # อนุมัติให้ admit ได้
+        prescription=[prescription], # ต้องใส่เป็น List
+        admit=True,           
+        examination_fee=500.0,       # กำหนดค่าตรวจ
+        appointment=appt             # ต้องผูก Appointment เพื่อให้ตอน Checkout นำค่ากรงไปรวมบิลได้
     )
 
     return system
@@ -67,6 +80,11 @@ app = FastAPI()
 @app.get("/")
 def read_root():
     return {"Hello": "Pet Hospital"}
+
+@app.get("/calculate total")
+def calculate_total(user_id):
+    total = system.calculate_payment(user_id)
+    return {"total" : total}
 
 @app.post("/book_appointment")
 def book_appointment(user_id: str, vet_id: str, pet_id: str, chosen_date: str):
@@ -112,5 +130,10 @@ def admit(MedID: str, date_in: str)-> dict:
 def check_out(Medical_recordID : str, date_leave: str):
     status = system.check_out(Medical_recordID, date_leave)
     return {"status" : status}
+@app.patch("/clear.current.appointment", tags= ['appointment'])
+def clear_appointment(user_id):
+    user: User = system.clear_appointment(user_id)
+    return {f"Current user:{user_id}" : user.current_appointment}
+
 if __name__ == "__main__":
     uvicorn.run("main:app",host="127.0.0.1",port=8000,reload=True)
